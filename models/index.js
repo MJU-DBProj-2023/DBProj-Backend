@@ -1,43 +1,63 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const Sequelize = require('sequelize');
-const process = require('process');
-const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const Sequelize = require("sequelize");
+const env = process.env.NODE_ENV || "development";
+const config = require("../config/config.json")[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+const Dept = require("./dept");
+const Employee = require("./employee");
+const SiteData = require("./siteData");
+const Customer = require("./customer");
+const Job = require("./job");
+const Project = require("./project");
+const WorksFor = require("./worksFor");
+const Eval = require("./eval");
+const CusEval = require("./cusEval");
+const CoEval = require("./coEval");
+const PmEval = require("./pmEval");
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
-  })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-  });
-
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+const sequelize = new Sequelize(
+  config.databse,
+  config.username,
+  config.password,
+  config
+);
 
 db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+
+db.Dept = Dept;
+db.Employee = Employee;
+db.SiteData = SiteData;
+db.Customer = Customer;
+db.Job = Job;
+db.Project = Project;
+db.WorksFor = WorksFor;
+db.Eval = Eval;
+db.CoEval = CoEval;
+db.CusEval = CusEval;
+db.PmEval = PmEval;
+
+Dept.init(sequelize);
+Employee.init(sequelize);
+SiteData.init(sequelize);
+Customer.init(sequelize);
+Job.init(sequelize);
+Project.init(sequelize);
+WorksFor.init(sequelize);
+Eval.init(sequelize);
+CoEval.init(sequelize);
+CusEval.init(sequelize);
+PmEval.init(sequelize);
+
+WorksFor.associate(db);
+Dept.associate(db);
+Employee.associate(db);
+SiteData.associate(db);
+Customer.associate(db);
+Job.associate(db);
+Project.associate(db);
+Eval.associate(db);
+CoEval.associate(db);
+CusEval.associate(db);
+PmEval.associate(db);
 
 module.exports = db;

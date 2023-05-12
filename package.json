@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/MJU-DBProj-2023/DBProj-Backend#readme",
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.0.3",
@@ -25,6 +26,9 @@
     "express-session": "^1.17.3",
     "morgan": "^1.10.0",
     "mysql2": "^3.3.0",
+    "nodemailer": "^6.9.1",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
     "sequelize": "^6.31.1",
     "sequelize-cli": "^6.6.0"
   },
