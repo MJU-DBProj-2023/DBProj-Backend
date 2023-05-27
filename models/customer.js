@@ -10,7 +10,7 @@ class Customer extends Sequelize.Model {
       customer_address: {
         type: Sequelize.STRING(150),
       },
-      custoemr_phone: {
+      customer_phone: {
         type: Sequelize.STRING(50),
       },
     };

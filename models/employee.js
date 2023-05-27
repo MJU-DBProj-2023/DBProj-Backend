@@ -20,14 +20,14 @@ class Employee extends Sequelize.Model {
         type: Sequelize.STRING(150),
         allowNull: false,
         validate: {
-          isEmaile: true,
+          isEmail: true,
         },
       },
       education: {
         type: Sequelize.STRING(50),
         allowNull: false,
       },
-      start_employeement: {
+      start_employment: {
         type: Sequelize.DATE,
         allowNull: false,
       },
@@ -110,6 +110,10 @@ class Employee extends Sequelize.Model {
     });
     db.Employee.belongsTo(db.Employee, {
       foreignKey: "manager",
+      sourceKey: "employee_id",
+    });
+    db.Employee.hasMany(db.WorksFor, {
+      foreignKey: "employee_id",
       sourceKey: "employee_id",
     });
   }

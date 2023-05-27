@@ -4,6 +4,10 @@ const bcrypt = require("bcrypt");
 const passport = require("../passport/index.js");
 const router = express.Router();
 
+router.get("/login", (req, res, next) => {
+  res.sendFile(__dirname + "/session_test.html");
+});
+
 // 로그인/로그아웃 요청 처리
 // login (req.user 속성 생성)
 router.post("/login", (req, res, next) => {
@@ -22,7 +26,6 @@ router.post("/login", (req, res, next) => {
           "로그인에 실패했습니다. 아이디와 비밀번호를 올바르게 입력했는지 확인해주세요."
         );
     }
-
     console.info("___req.login()"); //콘솔 확인용
     return req.login(user, (loginError) => {
       //req.login은 passport가 만들어주는 method
@@ -30,7 +33,15 @@ router.post("/login", (req, res, next) => {
         console.error(loginError);
         return next(loginError); //에러 처리 라우터로 넘김
       }
-      return res.status(200).json("로그인에 성공하였습니다."); //로그인 성공하면 root 페이지로 redirect
+      console.log("req.session : ", req.session);
+      console.log("req.session.passport : ", req.session.passport);
+
+      return res.status(200).json({
+        message: "로그인에 성공하였습니다.",
+        user: user,
+        session: req.session,
+        user: req.user,
+      }); //로그인 성공하면 root 페이지로 redirect
     });
   })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙임
 });
@@ -39,7 +50,7 @@ router.post("/login", (req, res, next) => {
 router.post("/logout", (req, res) => {
   req.logout(() => {
     req.session.destroy();
-    res.redirect("/");
+    return res.status(200).json({ success: "logout success" });
   });
 });
 

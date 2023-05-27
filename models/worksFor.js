@@ -6,13 +6,11 @@ class WorksFor extends Sequelize.Model {
     const worksForAttr = {
       employee_id: {
         type: Sequelize.STRING(20),
-        references: Employee,
-        referencesKey: "employee_id",
+        primaryKey: true,
       },
       project_id: {
         type: Sequelize.STRING(50),
-        references: Project,
-        referencesKey: "project_id",
+        primaryKey: true,
       },
       job_code: {
         type: Sequelize.STRING(20),
@@ -47,15 +45,23 @@ class WorksFor extends Sequelize.Model {
       foreignKey: "job_code",
       targetKey: "job_code",
     });
-    db.Employee.belongsToMany(db.Project, {
-      through: WorksFor,
-      as: "Workers",
-      onDelete: "CASCADE",
+    // db.Employee.belongsToMany(db.Project, {
+    //   through: WorksFor,
+    //   as: "Workers",
+    //   onDelete: "CASCADE",
+    // });
+    // db.Project.belongsToMany(db.Employee, {
+    //   through: WorksFor,
+    //   as: "Projects",
+    //   onDelete: "CASCADE",
+    // });
+    db.WorksFor.belongsTo(db.Employee, {
+      foreignKey: "employee_id",
+      targetKey: "employee_id",
     });
-    db.Project.belongsToMany(db.Employee, {
-      through: WorksFor,
-      as: "Projects",
-      onDelete: "CASCADE",
+    db.WorksFor.belongsTo(db.Project, {
+      foreignKey: "project_id",
+      targetKey: "project_id",
     });
   }
   // Employee(Assign된 직원)와 N 대 M (N 직원 - M 프로젝트) - works_for

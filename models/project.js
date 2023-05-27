@@ -91,6 +91,10 @@ class Project extends Sequelize.Model {
       foreignKey: "project_id",
       sourceKey: "project_id",
     });
+    db.Project.hasMany(db.WorksFor, {
+      foreignKey: "project_id",
+      sourceKey: "project_id",
+    });
   }
   // Customer와 1 대 N (1 고객 - N 프로젝트)
   // Employee(PM)와 1 대 N (1 PM - N 프로젝트)

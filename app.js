@@ -4,22 +4,36 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const session = require("express-session");
 const passport = require("passport");
-const path = require("path");
+const cors = require("cors");
 const { sequelize } = require("./models/index");
 dotenv.config();
 
-// router 분리
-const userRouter = require("./routes/user");
-
 const app = express();
-app.set("port", process.env.PORT || 3000);
+// app.set("trust proxy", 1);
+app.set("Access-Control-Allow-Credentials", true);
+app.set("port", process.env.PORT || 3001);
 sequelize
   .sync({ force: false })
   .then(() => {
     console.log("데이터베이스 연결 성공");
   })
   .catch((err) => console.error(err));
-
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "X-AUTHENTICATION",
+      "X-IP",
+      "Content-Type",
+      "Accept",
+      "Cookie",
+    ],
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -28,22 +42,41 @@ app.use(
   session({
     resave: false,
     saveUninitialized: false,
+    secure: false,
     secret: process.env.COOKIE_SECRETE,
     cookie: {
       httpOnly: true,
-      maxAge: 600000,
-      secure: false,
+      maxAge: 24000 * 60 * 60,
+      domain: "localhost",
     },
-    name: "my-session-cookie",
-    // store 속성 -> 서버 사이드 session이 어디에 저장될지 지정 (defualt = memeory)
   })
 );
 // passport 초기화 및 session 연결
 app.use(passport.initialize());
 app.use(passport.session());
 
+// router 분리
+const userRouter = require("./routes/user");
+const employeeRouter = require("./routes/employee");
+const projectRouter = require("./routes/project");
+const evalRouter = require("./routes/eval");
+const adminRouter = require("./routes/administrator");
+
+// 모든 요청에 대해 실행
+app.use((req, res, next) => {
+  // request가 유효한 동안 user를 전역적으로 사용 가능
+  res.locals.user = req.user;
+  console.log("user 정보 :");
+  console.log(req.user);
+  next();
+});
+
 app.use("/user", userRouter);
+app.use("/index", projectRouter);
+app.use("/employee", employeeRouter);
+app.use("/eval", evalRouter);
+app.use("/admin", adminRouter);
 
 app.listen(app.get("port"), () => {
-  console.log("Express App on port 3000!");
+  console.log("Express App on port 3001!");
 });

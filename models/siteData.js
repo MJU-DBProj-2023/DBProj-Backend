@@ -14,6 +14,10 @@ class SiteData extends Sequelize.Model {
       employee_id: {
         type: Sequelize.STRING(20),
       },
+      auth_code: {
+        type: Sequelize.TINYINT,
+        allowNull: false,
+      },
     };
 
     const siteDataTbl = {
