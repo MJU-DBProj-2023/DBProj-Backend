@@ -1,12 +1,12 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
-
 const passport = require("../passport/index.js");
+const { SiteData, Employee } = require("../models/index.js");
+const transporter = require("../nodemailer/index.js");
+const auth_code = require("../nodemailer/services.js");
+const nodeCache = require("node-cache");
+const myCache = new nodeCache({ stdTTL: 0, checkperiod: 600 }); // init
 const router = express.Router();
-
-router.get("/login", (req, res, next) => {
-  res.sendFile(__dirname + "/session_test.html");
-});
 
 // 로그인/로그아웃 요청 처리
 // login (req.user 속성 생성)
@@ -52,6 +52,129 @@ router.post("/logout", (req, res) => {
     req.session.destroy();
     return res.status(200).json({ success: "logout success" });
   });
+});
+
+// id 변경
+router.patch("/resetId", async (req, res) => {
+  const user = req.user ? req.user : null;
+
+  if (user) {
+    const cuur_id = user.id;
+    const { newId } = req.body;
+    console.log(newId);
+
+    try {
+      let user = await SiteData.update(
+        { id: newId },
+        { where: { id: cuur_id } }
+      );
+      return res.status(200).json({ success: "changing ID success" });
+    } catch {
+      return res.status(500).json("internal server error");
+    }
+  } else return res.status(401).json("Unauthenticated");
+});
+
+//비밀번호 변경 시 인증 코드 발송
+router.post("/sendEmail", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = req.user ? req.user : null;
+
+    if (user) {
+      const id = user.id;
+      const user_data = await SiteData.findOne({
+        where: { id: id },
+        include: {
+          model: Employee,
+          required: true,
+          attributes: ["email"],
+        },
+      });
+      const user_email = user_data.Employee.email;
+
+      if (email == user_email) {
+        const verify_code = auth_code();
+        transporter.sendMail({
+          from: "prompt.solution3@gmail.com",
+          to: user_email,
+          subject: "[Prompt Solution]비밀번호 변경 인증 메일입니다.",
+          text: verify_code,
+        });
+        await myCache.set(user_email, verify_code, 60 * 5);
+        console.log(verify_code);
+        return res.status(200).json({ success: "send mail success" });
+      } else {
+        return res
+          .status(401)
+          .json({ error: "가입된 이메일과 일치하지 않습니다." });
+      }
+    } else {
+      return res.status(401).json("Unauthenticated");
+    }
+  } catch {
+    return res.status(500).json("internal server error");
+  }
+});
+
+// 코드 인증
+router.post("/verifyEmail", async (req, res) => {
+  try {
+    const { verify_code } = req.body;
+    const user = req.user ? req.user : null;
+
+    if (user) {
+      const id = user.id;
+      const user_data = await SiteData.findOne({
+        where: { id: id },
+        include: {
+          model: Employee,
+          required: true,
+          attributes: ["email"],
+        },
+      });
+
+      const user_email = user_data.Employee.email;
+      const code = await myCache.get(user_email);
+
+      if (code == verify_code) {
+        await myCache.del(user_email);
+        return res.status(200).json("success");
+      } else {
+        return res.status(400).json("인증코드가 일치하지 않습니다.");
+      }
+    } else {
+      return res.status(401).json("Unauthenticated");
+    }
+  } catch {
+    return res.status(500).json("internal server error");
+  }
+});
+
+//비밀번호 변경
+router.patch("/resetPW", async (req, res) => {
+  // try {
+  const { newPassword, currPassword } = req.body;
+  const user = req.user ? req.user : null;
+
+  if (user) {
+    const user_data = await SiteData.findOne({ where: { id: user.id } });
+    const result = await bcrypt.compare(currPassword, user_data.password);
+    if (result) {
+      await SiteData.update(
+        { password: await bcrypt.hash(newPassword, 12) },
+        { where: { id: user_data.id } }
+      );
+      return res.status(200).json("success");
+    } else {
+      return res.status(400).json("비밀번호가 일치하지 않습니다.");
+    }
+  } else {
+    return res.status(401).json("Unauthenticated");
+  }
+  // } catch {
+  //   return res.status(500).json("internal server error");
+  // }
 });
 
 module.exports = router;

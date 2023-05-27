@@ -6,6 +6,7 @@ const session = require("express-session");
 const passport = require("passport");
 const cors = require("cors");
 const { sequelize } = require("./models/index");
+const transporter = require("./nodemailer");
 dotenv.config();
 
 const app = express();
@@ -71,11 +72,24 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("/", (req, res) => {
+  return res.sendFile(__dirname + "/routes/session_test.html");
+});
+
 app.use("/user", userRouter);
 app.use("/index", projectRouter);
 app.use("/employee", employeeRouter);
 app.use("/eval", evalRouter);
 app.use("/admin", adminRouter);
+
+// verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log("Server is ready to take our messages");
+  }
+});
 
 app.listen(app.get("port"), () => {
   console.log("Express App on port 3001!");
