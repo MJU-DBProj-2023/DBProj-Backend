@@ -16,7 +16,7 @@ class Eval extends Sequelize.Model {
     const evalTbl = {
       sequelize,
       underscored: true, // column명 camalCase 아닌 underscore 방식
-      taleName: "eval",
+      tableName: "eval",
       modelName: "Eval",
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",

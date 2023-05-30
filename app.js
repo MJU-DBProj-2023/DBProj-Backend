@@ -62,6 +62,8 @@ const employeeRouter = require("./routes/employee");
 const projectRouter = require("./routes/project");
 const evalRouter = require("./routes/eval");
 const adminRouter = require("./routes/administrator");
+const mypageRouter = require("./routes/mypage");
+const worksForRouter = require("./routes/worksfor");
 
 // 모든 요청에 대해 실행
 app.use((req, res, next) => {
@@ -81,6 +83,8 @@ app.use("/index", projectRouter);
 app.use("/employee", employeeRouter);
 app.use("/eval", evalRouter);
 app.use("/admin", adminRouter);
+app.use("/mypage", mypageRouter);
+app.use("/worksfor", worksForRouter);
 
 // verify connection configuration
 transporter.verify(function (error, success) {

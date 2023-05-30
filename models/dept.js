@@ -15,7 +15,7 @@ class Dept extends Sequelize.Model {
     const deptTbl = {
       sequelize,
       underscored: true, // column명 camalCase 아닌 underscore 방식
-      taleName: "dept",
+      tableName: "dept",
       modelName: "Dept",
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",

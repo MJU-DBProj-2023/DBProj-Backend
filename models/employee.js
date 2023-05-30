@@ -71,7 +71,7 @@ class Employee extends Sequelize.Model {
       updatedAt: false,
       paranoid: true, // deleted_at 데이터 실제 삭제되진 않지만 삭제된 효과 (find 할 때 검색 제외)
       underscored: true, // column명 camalCase 아닌 underscore 방식
-      taleName: "employee",
+      tableName: "employee",
       modelName: "Employee",
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",
@@ -101,7 +101,7 @@ class Employee extends Sequelize.Model {
       sourceKey: "employee_id",
     });
     db.Employee.hasMany(db.PmEval, {
-      foreignKey: "evaluated_id",
+      foreignKey: "evaluated",
       sourceKey: "employee_id",
     });
     db.Employee.hasMany(db.Employee, {
@@ -112,6 +112,7 @@ class Employee extends Sequelize.Model {
       foreignKey: "manager",
       sourceKey: "employee_id",
     });
+
     db.Employee.hasMany(db.WorksFor, {
       foreignKey: "employee_id",
       sourceKey: "employee_id",

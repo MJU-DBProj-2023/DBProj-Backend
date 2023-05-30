@@ -41,7 +41,7 @@ router.post("/login", (req, res, next) => {
         user: user,
         session: req.session,
         user: req.user,
-      }); //로그인 성공하면 root 페이지로 redirect
+      });
     });
   })(req, res, next); // 미들웨어 내의 미들웨어에는 (req, res, next)를 붙임
 });
@@ -103,11 +103,9 @@ router.post("/sendEmail", async (req, res) => {
         });
         await myCache.set(user_email, verify_code, 60 * 5);
         console.log(verify_code);
-        return res.status(200).json({ success: "send mail success" });
+        return res.status(200).json("성공적으로 이메일을 발송하였습니다.");
       } else {
-        return res
-          .status(401)
-          .json({ error: "가입된 이메일과 일치하지 않습니다." });
+        return res.status(401).json("가입된 이메일과 일치하지 않습니다.");
       }
     } else {
       return res.status(401).json("Unauthenticated");
@@ -139,7 +137,7 @@ router.post("/verifyEmail", async (req, res) => {
 
       if (code == verify_code) {
         await myCache.del(user_email);
-        return res.status(200).json("success");
+        return res.status(200).json("성공적으로 인증을 완료하였습니다.");
       } else {
         return res.status(400).json("인증코드가 일치하지 않습니다.");
       }
@@ -153,28 +151,28 @@ router.post("/verifyEmail", async (req, res) => {
 
 //비밀번호 변경
 router.patch("/resetPW", async (req, res) => {
-  // try {
-  const { newPassword, currPassword } = req.body;
-  const user = req.user ? req.user : null;
+  try {
+    const { newPassword, currPassword } = req.body;
+    const user = req.user ? req.user : null;
 
-  if (user) {
-    const user_data = await SiteData.findOne({ where: { id: user.id } });
-    const result = await bcrypt.compare(currPassword, user_data.password);
-    if (result) {
-      await SiteData.update(
-        { password: await bcrypt.hash(newPassword, 12) },
-        { where: { id: user_data.id } }
-      );
-      return res.status(200).json("success");
+    if (user) {
+      const user_data = await SiteData.findOne({ where: { id: user.id } });
+      const result = await bcrypt.compare(currPassword, user_data.password);
+      if (result) {
+        await SiteData.update(
+          { password: await bcrypt.hash(newPassword, 12) },
+          { where: { id: user_data.id } }
+        );
+        return res.status(200).json("success");
+      } else {
+        return res.status(400).json("비밀번호가 일치하지 않습니다.");
+      }
     } else {
-      return res.status(400).json("비밀번호가 일치하지 않습니다.");
+      return res.status(401).json("Unauthenticated");
     }
-  } else {
-    return res.status(401).json("Unauthenticated");
+  } catch {
+    return res.status(500).json("internal server error");
   }
-  // } catch {
-  //   return res.status(500).json("internal server error");
-  // }
 });
 
 module.exports = router;

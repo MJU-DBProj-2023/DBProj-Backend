@@ -6,8 +6,8 @@ const date_format = (date_raw) => {
   return dateString;
 };
 
-const parse_rrno_get_birth = (date_raw) => {
-  let split = date_raw.split("-");
+const parse_rrno_get_birth = (rrno_raw) => {
+  let split = rrno_raw.split("-");
   let birth = split[0];
   return birth;
 };

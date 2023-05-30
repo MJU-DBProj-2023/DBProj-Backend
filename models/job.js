@@ -24,7 +24,7 @@ class Job extends Sequelize.Model {
       updatedAt: false,
       paranoid: true, // deleted_at 데이터 실제 삭제되진 않지만 삭제된 효과 (find 할 때 검색 제외)
       underscored: true, // column명 camalCase 아닌 underscore 방식
-      taleName: "job",
+      tableName: "job",
       modelName: "Job",
       charset: "utf8mb4",
       collate: "utf8mb4_unicode_ci",
