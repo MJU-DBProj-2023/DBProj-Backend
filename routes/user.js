@@ -68,7 +68,7 @@ router.patch("/resetId", async (req, res) => {
         { id: newId },
         { where: { id: cuur_id } }
       );
-      return res.status(200).json({ success: "changing ID success" });
+      return res.status(200).json("changing ID success");
     } catch {
       return res.status(500).json("internal server error");
     }

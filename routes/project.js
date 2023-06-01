@@ -321,8 +321,8 @@ router.get("/search/detail/:project_id", async (req, res, next) => {
         employee_name: project["WorksFors.Employee.employee_name"],
         dept_id: project["WorksFors.Employee.dept_id"],
         job_name: project["WorksFors.Job.job_name"],
-        start_work: date_format(project["WorksFors.end_work"]),
-        end_work: date_format(project["WorksFors.start_work"]),
+        start_work: date_format(project["WorksFors.start_work"]),
+        end_work: date_format(project["WorksFors.end_work"]),
       };
       response.works_for.push(employee);
     });

@@ -221,19 +221,21 @@ router.get("/search", async (req, res, next) => {
 
   if (not_working) {
     try {
-      const query = `select distinct employee_id, employee_name, skill_set, dev_level, job_name
-      from (select r1.employee_id, employee_name, skill_set, auth_code, dev_level, job_code
-      from (select employee_id, employee_name, skill_set, dev_level, auth_code
-      from DBProject.employee as r1 
-            where not exists ( 
-            select distinct employee_id 
-            from dbproject.works_for as r2 
-            where r1.employee_id = r2.employee_id 
-            and r2.end_work  > now() 
-            )) as r1 left join dbproject.works_for r2
-            on r1.employee_id = r2.employee_id) as t1
-            left join dbproject.job t2 on t1.job_code = t2.job_code
-	    where auth_code=0 and dev_level!=0;`;
+      const query = `select employee_id, employee_name, skill_set, dev_level, group_concat(job_name) as job_name
+      from (select distinct employee_id, employee_name, skill_set, dev_level, job_name
+            from (select r1.employee_id, employee_name, skill_set, auth_code, dev_level, job_code
+            from (select employee_id, employee_name, skill_set, dev_level, auth_code
+            from DBProject.employee as r1 
+                  where not exists ( 
+                  select distinct employee_id 
+                  from dbproject.works_for as r2 
+                  where r1.employee_id = r2.employee_id 
+                  and r2.end_work  > now() 
+                  )) as r1 left join dbproject.works_for r2
+                  on r1.employee_id = r2.employee_id) as t1
+                  left join dbproject.job t2 on t1.job_code = t2.job_code
+        where auth_code=0 and dev_level!=0) as t3
+          group by employee_id, employee_name, skill_set, dev_level;`;
       const employee_list = await sequelize.query(query, {
         type: sequelize.QueryTypes.SELECT,
       });
@@ -330,21 +332,24 @@ router.get("/search/detail", async (req, res, next) => {
       type: sequelize.QueryTypes.SELECT,
     });
 
-    const project_avg_query = `select t2.project_id, project_name, ifnull(avg(eval_score), "미평가") as avg 
-    from ((select *
-    from dbproject.pm_eval
-    where evaluated = '${employee_id}')
-    union 
-    (select * 
-    from dbproject.co_eval
-    where evaluated = '${employee_id}') 
-    union 
-    (select * 
-    from dbproject.cus_eval
-    where evaluated = '${employee_id}')) as t1 
-    right join dbproject.project as t2 on t2.project_id = t1.project_id
-    where end_project < now()
-    group by t2.project_id, project_name;`;
+    const project_avg_query = `select t4.project_id, t4.project_name, avg
+    from (select t2.project_id, ifnull(avg(eval_score), "미평가") as avg 
+        from ((select *
+        from dbproject.pm_eval
+        where evaluated = '${employee_id}')
+        union 
+        (select * 
+        from dbproject.co_eval
+        where evaluated = '${employee_id}') 
+        union 
+        (select * 
+        from dbproject.cus_eval
+        where evaluated = '${employee_id}')) as t1 
+        right join (select *
+        from dbproject.works_for
+        where employee_id='${employee_id}') t2 on t1.project_id = t2.project_id
+        group by t2.project_id) as t3 join dbproject.project as t4 on t3.project_id=t4.project_id
+        where end_project < now();`;
     const completedProjects = await sequelize.query(project_avg_query, {
       type: sequelize.QueryTypes.SELECT,
     });
@@ -383,7 +388,7 @@ router.get("/working_days", async (req, res) => {
         WHERE DATE_FORMAT(start_work, '%Y') < "${year}" AND
             DATE_FORMAT(end_work, '%Y') = "${year}"
         UNION
-        SELECT employee_id, project_id, DATEDIFF(end_work, concat("${year}", "-12", "-31")) AS working_days
+        SELECT employee_id, project_id, DATEDIFF(concat("${year}", "-12", "-31"), start_work) AS working_days
         FROM dbproject.works_for
         WHERE DATE_FORMAT(start_work, '%Y') = "${year}" AND
             DATE_FORMAT(end_work, '%Y') > "${year}"

@@ -3,6 +3,7 @@ const { Op, fn } = require("sequelize");
 const { sequelize } = require("../models");
 const WorksFor = require("../models/worksFor");
 const Employee = require("../models/employee");
+const Job = require("../models/job");
 const router = express.Router();
 
 //투입 삭제는 프로젝트 조회 페이지로부터
@@ -89,6 +90,43 @@ router.post("/assign", async (req, res) => {
         .status(400)
         .json("존재하는 프로젝트 ID와 직무코드를 입력해주세요.");
     }
+    return res.status(500).json("internal server error");
+  }
+});
+
+router.patch("/update", async (req, res) => {
+  const user = req.user ? req.user : null;
+  if (!user || user.auth_code != 1) {
+    return res.status(401).json("Unauthenticated");
+  }
+  try {
+    const { employee_id, project_id } = req.query;
+    const { job_name, start_work, end_work } = req.body.editedItem;
+    console.log(req.body);
+    if (!employee_id || !project_id) {
+      return res
+        .status(400)
+        .json("작원 및 프로젝트 정보를 가져올 수 없습니다.");
+    }
+    if (!job_name || !start_work || !end_work) {
+      return res.status(400).json("항목을 모두 입력해주세요");
+    }
+    const job = await Job.findOne({
+      where: { job_name },
+      attributes: ["job_code"],
+    });
+    if (!job) {
+      return res.status(400).json("존재하지 않는 직책입니다.");
+    }
+    const job_code = job.job_code;
+
+    const query = `update dbproject.works_for set job_code='${job_code}'
+  , start_work='${start_work}', end_work='${end_work}' 
+  where employee_id='${employee_id}' and project_id='${project_id}';`;
+    await sequelize.query(query);
+
+    return res.status(200).json("성공적으로 수정하였습니다.");
+  } catch {
     return res.status(500).json("internal server error");
   }
 });
